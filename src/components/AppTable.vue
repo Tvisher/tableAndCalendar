@@ -31,10 +31,6 @@
     </template>
   </el-dialog>
 
-  <el-button plain @click="dialogVisible = true">
-    Click to open the Dialog
-  </el-button>
-
   <el-dialog v-model="showRemoveItemModal" title="Удалить строку?" width="500">
     <span>This is a message</span>
     <template #footer>
@@ -54,7 +50,6 @@ const headers = ref([
   { text: "TEAM", value: "team", sortable: true },
   { text: "NUMBER", value: "number", sortable: true },
   { text: "POSITION", value: "position", sortable: true },
-
   { text: "LAST ATTENDED", value: "lastAttended", sortable: true },
   { text: "COUNTRY", value: "country", sortable: true },
   { text: "Operation", value: "operation" },
