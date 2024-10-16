@@ -1,4 +1,13 @@
 <template>
+  <div style="width: 100%; display: flex">
+    <el-button
+      style="margin-left: auto; margin-bottom: 10px"
+      type="info"
+      :icon="Plus"
+      @click="showAddRowModal = true"
+      >Добавить строку
+    </el-button>
+  </div>
   <EasyDataTable :headers="headers" :items="items">
     <template #item-operation="item">
       <div class="operation-wrapper">
@@ -14,12 +23,14 @@
   </EasyDataTable>
 
   <el-dialog v-model="isEditing" title="Изменить строку таблицы" width="500">
-    <div class="edit-item" v-if="isEditing">
+    <div class="edit-item">
       <div class="edited-item" v-for="field in headers" :class="field.value">
         <div class="edited-item__name">{{ field.text }} :</div>
         <div class="edited-item__filed">
-          <el-input v-model="editedItem[field.value]" style="width: 100%" />
-          <!-- <input type="text" v-model="editedItem[field.value]" /> -->
+          <el-input
+            v-model.trim="editedItem[field.value]"
+            style="width: 100%"
+          />
         </div>
       </div>
     </div>
@@ -31,8 +42,39 @@
     </template>
   </el-dialog>
 
+  <el-dialog
+    v-model="showAddRowModal"
+    title="Добавить строку таблицы"
+    width="500"
+  >
+    <div class="edit-item">
+      <div class="edited-item" v-for="field in headers" :class="field.value">
+        <div class="edited-item__name">{{ field.text }} :</div>
+        <div
+          class="edited-item__filed"
+          :class="{
+            error:
+              addedRowHasError && !tableRowTemplate[field.value]?.trim().length,
+          }"
+        >
+          <el-input
+            v-model.trim="tableRowTemplate[field.value]"
+            style="width: 100%"
+          />
+        </div>
+      </div>
+    </div>
+    <template #footer>
+      <div class="dialog-footer">
+        <el-button @click="showAddRowModal = false">Отмена</el-button>
+        <el-button type="primary" @click="submitAddedRow">
+          Сохранить
+        </el-button>
+      </div>
+    </template>
+  </el-dialog>
+
   <el-dialog v-model="showRemoveItemModal" title="Удалить строку?" width="500">
-    <span>This is a message</span>
     <template #footer>
       <div class="dialog-footer">
         <el-button @click="showRemoveItemModal = false">Отмена</el-button>
@@ -43,8 +85,8 @@
 </template>
 
 <script setup>
-import { Delete, Edit } from "@element-plus/icons-vue";
-import { ref, computed } from "vue";
+import { Delete, Edit, Plus } from "@element-plus/icons-vue";
+import { ref, watch } from "vue";
 const headers = ref([
   { text: "PLAYER", value: "player", sortable: true },
   { text: "TEAM", value: "team", sortable: true },
@@ -54,6 +96,7 @@ const headers = ref([
   { text: "COUNTRY", value: "country", sortable: true },
   { text: "Operation", value: "operation" },
 ]);
+
 const items = ref([
   {
     player: "Stephen Curry",
@@ -97,6 +140,16 @@ const editedItem = ref(null);
 const deletedItem = ref(null);
 const isEditing = ref(false);
 const showRemoveItemModal = ref(false);
+const showAddRowModal = ref(false);
+const addedRowHasError = ref(false);
+const tableRowTemplateObject = headers.value.reduce((acc, item) => {
+  if (item.value === "operation") return acc;
+
+  acc[item.value] = "";
+  return acc;
+}, {});
+
+const tableRowTemplate = ref({ ...tableRowTemplateObject });
 
 const setDeleteItem = (el) => {
   deletedItem.value = items.value.find((item) => item.id == el.id);
@@ -110,6 +163,8 @@ const deleteItem = () => {
 
 const editItem = (el) => {
   const currentItem = items.value.find((item) => item.id == el.id);
+  console.log(el);
+
   editedItem.value = { ...currentItem };
   isEditing.value = true;
 };
@@ -123,6 +178,32 @@ const submitEdit = () => {
     isEditing.value = false;
   }
 };
+
+function areAllFieldsFilled(obj) {
+  for (let key in obj) {
+    if (!obj[key]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+const submitAddedRow = () => {
+  if (!areAllFieldsFilled(tableRowTemplate.value)) {
+    addedRowHasError.value = true;
+    return;
+  }
+  addedRowHasError.value = false;
+  items.value.push(tableRowTemplate.value);
+  showAddRowModal.value = false;
+  setTimeout(() => {
+    tableRowTemplate.value = { ...tableRowTemplateObject };
+  }, 200);
+};
+
+watch(showAddRowModal, () => {
+  addedRowHasError.value = false;
+});
 </script>
 
 <style lang="scss">
@@ -158,5 +239,11 @@ const submitEdit = () => {
 .edited-item__name {
   font-weight: 600;
   margin-top: 15px;
+}
+
+.edited-item__filed.error {
+  .el-input__wrapper {
+    box-shadow: 0 0 0 1px red inset;
+  }
 }
 </style>

@@ -3,7 +3,7 @@ import { ref } from "vue";
 import AppTable from "./components/AppTable.vue";
 import EventCalendar from "./components/EventCalendar.vue";
 import { Calendar, Grid } from "@element-plus/icons-vue";
-const currentTab = ref("table-1");
+const currentTab = ref("calendar");
 </script>
 
 <template>
@@ -66,6 +66,8 @@ const currentTab = ref("table-1");
 
 .content-zone {
   width: 80%;
+  display: flex;
+  flex-direction: column;
 }
 
 .app-wrapper {
