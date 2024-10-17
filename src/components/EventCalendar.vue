@@ -156,6 +156,9 @@ const getEventsByDate = (date) => {
   border-radius: 5px;
   padding: 5px;
   color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   &._more-events {
     font-size: 10px;
   }

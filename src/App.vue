@@ -7,50 +7,55 @@ const currentTab = ref("calendar");
 </script>
 
 <template>
-  <div class="app-wrapper">
-    <div class="sidebar-menu">
-      <el-card style="height: 100%">
-        <el-button
-          class="sidebar-btn"
-          @click="currentTab = 'calendar'"
-          :type="currentTab == 'calendar' ? 'success' : 'primary'"
-          :icon="Calendar"
-          >Календарь</el-button
-        >
+  <div class="cont">
+    <el-button type="warning" class="reg-btn">
+      <a href="https://www.google.ru" style="color: #ffff">Регистрация</a>
+    </el-button>
+    <div class="app-wrapper">
+      <div class="sidebar-menu">
+        <el-card style="height: 100%">
+          <el-button
+            class="sidebar-btn"
+            @click="currentTab = 'calendar'"
+            :type="currentTab == 'calendar' ? 'success' : 'primary'"
+            :icon="Calendar"
+            >Календарь</el-button
+          >
 
-        <el-button
-          class="sidebar-btn"
-          @click="currentTab = 'table-1'"
-          :type="currentTab == 'table-1' ? 'success' : 'primary'"
-          :icon="Grid"
-          >Таблица 1</el-button
-        >
-        <el-button
-          class="sidebar-btn"
-          @click="currentTab = 'table-2'"
-          :type="currentTab == 'table-2' ? 'success' : 'primary'"
-          :icon="Grid"
-          >Таблица 2</el-button
-        >
-        <el-button
-          class="sidebar-btn"
-          @click="currentTab = 'table-3'"
-          :type="currentTab == 'table-3' ? 'success' : 'primary'"
-          :icon="Grid"
-          >Таблица 3</el-button
-        >
-        <el-button
-          class="sidebar-btn"
-          @click="currentTab = 'table-4'"
-          :type="currentTab == 'table-4' ? 'success' : 'primary'"
-          :icon="Grid"
-          >Таблица 4</el-button
-        >
-      </el-card>
-    </div>
-    <div class="content-zone">
-      <AppTable v-if="currentTab == 'table-1'" />
-      <EventCalendar v-if="currentTab == 'calendar'" />
+          <el-button
+            class="sidebar-btn"
+            @click="currentTab = 'table-1'"
+            :type="currentTab == 'table-1' ? 'success' : 'primary'"
+            :icon="Grid"
+            >Таблица 1</el-button
+          >
+          <el-button
+            class="sidebar-btn"
+            @click="currentTab = 'table-2'"
+            :type="currentTab == 'table-2' ? 'success' : 'primary'"
+            :icon="Grid"
+            >Таблица 2</el-button
+          >
+          <el-button
+            class="sidebar-btn"
+            @click="currentTab = 'table-3'"
+            :type="currentTab == 'table-3' ? 'success' : 'primary'"
+            :icon="Grid"
+            >Таблица 3</el-button
+          >
+          <el-button
+            class="sidebar-btn"
+            @click="currentTab = 'table-4'"
+            :type="currentTab == 'table-4' ? 'success' : 'primary'"
+            :icon="Grid"
+            >Таблица 4</el-button
+          >
+        </el-card>
+      </div>
+      <div class="content-zone">
+        <AppTable v-if="currentTab == 'table-1'" />
+        <EventCalendar v-if="currentTab == 'calendar'" />
+      </div>
     </div>
   </div>
 </template>
@@ -62,6 +67,17 @@ const currentTab = ref("calendar");
 }
 .sidebar-menu {
   width: 20%;
+}
+.cont {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.reg-btn {
+  width: fit-content;
+  margin-bottom: 10px;
+  margin-left: auto;
 }
 
 .content-zone {
