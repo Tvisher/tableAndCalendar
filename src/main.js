@@ -1,6 +1,7 @@
 import { createApp } from 'vue'
 import './style.css'
 import App from './App.vue'
+import { createPinia } from 'pinia'
 
 import Vue3EasyDataTable from 'vue3-easy-data-table';
 import 'vue3-easy-data-table/dist/style.css';
@@ -13,5 +14,6 @@ createApp(App)
     .use(ElementPlus, {
         locale: ruLang,
     })
+    .use(createPinia())
     .component('EasyDataTable', Vue3EasyDataTable)
     .mount('#app')

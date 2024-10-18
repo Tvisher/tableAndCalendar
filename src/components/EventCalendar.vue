@@ -70,36 +70,12 @@
 <script setup>
 import { ref } from "vue";
 import { ArrowDown } from "@element-plus/icons-vue";
+import { useAppData } from "@/store/AppData.js";
+const store = useAppData();
 
+const events = ref(store.caledarEvents);
 const selectedEvent = ref(null);
 const showEventInModal = ref(false);
-// Массив с событиями
-const events = ref([
-  {
-    date: "2024-10-05",
-    name: "Первое событие",
-    id: 1,
-    description: "Какой то текст1",
-  },
-  {
-    date: "2024-10-05",
-    name: "Второе событие",
-    id: 2,
-    description: "Какой то текст2",
-  },
-  {
-    date: "2024-10-21",
-    name: "Ещё одно событие",
-    id: 3,
-    description: "Какой то текст3",
-  },
-  {
-    date: "2024-10-23",
-    name: "Ещё одно событие2",
-    id: 4,
-    description: "Какой то текст4",
-  },
-]);
 
 const showEvent = (eventItem) => {
   selectedEvent.value = eventItem;
@@ -148,6 +124,9 @@ const getEventsByDate = (date) => {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  .el-dropdown {
+    width: 100%;
+  }
 }
 
 .event-item {

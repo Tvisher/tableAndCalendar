@@ -1,5 +1,5 @@
 <template>
-  <div style="width: 100%; display: flex">
+  <div style="width: 100%; display: flex" v-if="isAdmin">
     <el-button
       style="margin-left: auto; margin-bottom: 10px"
       type="info"
@@ -87,6 +87,12 @@
 <script setup>
 import { Delete, Edit, Plus } from "@element-plus/icons-vue";
 import { ref, watch } from "vue";
+
+import { useAppData } from "@/store/AppData.js";
+const store = useAppData();
+const isAdmin = store.isAdmin;
+console.log(isAdmin);
+
 const headers = ref([
   { text: "PLAYER", value: "player", sortable: true },
   { text: "TEAM", value: "team", sortable: true },
@@ -94,8 +100,11 @@ const headers = ref([
   { text: "POSITION", value: "position", sortable: true },
   { text: "LAST ATTENDED", value: "lastAttended", sortable: true },
   { text: "COUNTRY", value: "country", sortable: true },
-  { text: "Operation", value: "operation" },
 ]);
+
+if (isAdmin) {
+  headers.value.push({ text: "Управление", value: "operation" });
+}
 
 const items = ref([
   {
