@@ -91,7 +91,6 @@ import { ref, watch } from "vue";
 import { useAppData } from "@/store/AppData.js";
 const store = useAppData();
 const isAdmin = store.isAdmin;
-console.log(isAdmin);
 
 const headers = ref([
   { text: "PLAYER", value: "player", sortable: true },
