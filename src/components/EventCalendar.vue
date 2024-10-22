@@ -25,7 +25,7 @@
                     )"
                     :key="index"
                   >
-                    {{ event.name }}</el-dropdown-item
+                    {{ event.title }}</el-dropdown-item
                   >
                 </el-dropdown-menu>
               </template>
@@ -36,7 +36,7 @@
             class="event-item"
             @click="showEvent(getEventsByDate(new Date(data.day))[0])"
           >
-            {{ getEventsByDate(new Date(data.day))[0].name }}
+            {{ getEventsByDate(new Date(data.day))[0].title }}
           </div>
         </div>
       </div>
@@ -49,16 +49,29 @@
   >
     <template #footer>
       <div class="event-info">
-        <div class="event-info__name">Дата:</div>
+        <div class="event-info__name">Название:</div>
+        <div class="event-info__value">{{ selectedEvent.title }}</div>
+      </div>
+
+      <div class="event-info">
+        <div class="event-info__name">Дата Тренировки:</div>
         <div class="event-info__value">{{ selectedEvent.date }}</div>
       </div>
       <div class="event-info">
-        <div class="event-info__name">Название:</div>
-        <div class="event-info__value">{{ selectedEvent.name }}</div>
+        <div class="event-info__name">ФИО участника:</div>
+        <div class="event-info__value">{{ selectedEvent.fio_parc }}</div>
+      </div>
+      <div class="event-info">
+        <div class="event-info__name">ФИО тренера:</div>
+        <div class="event-info__value">{{ selectedEvent.fio_train }}</div>
+      </div>
+      <div class="event-info">
+        <div class="event-info__name">Тип :</div>
+        <div class="event-info__value">{{ selectedEvent.type }}</div>
       </div>
       <div class="event-info">
         <div class="event-info__name">Описание:</div>
-        <div class="event-info__value">{{ selectedEvent.description }}</div>
+        <div class="event-info__value">{{ selectedEvent.desc }}</div>
       </div>
       <div class="dialog-footer">
         <el-button @click="showEventInModal = false">ОК</el-button>

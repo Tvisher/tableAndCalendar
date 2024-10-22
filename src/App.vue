@@ -1,5 +1,6 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { storeToRefs } from "pinia";
+import { ref, onMounted, computed, watch } from "vue";
 import { ElLoading } from "element-plus";
 import AppTable from "./components/AppTable.vue";
 import EventCalendar from "./components/EventCalendar.vue";
@@ -7,10 +8,17 @@ import { Calendar, Grid } from "@element-plus/icons-vue";
 
 import { useAppData } from "@/store/AppData.js";
 const store = useAppData();
-const isAuth = store.isAuth;
 
-const currentTab = ref("calendar");
+const { tables } = storeToRefs(store);
+const isAuth = ref(false);
+const isAdmin = ref(false);
+
 const appLoaded = ref(false);
+const currentTab = ref("calendar");
+
+const currentTable = computed(() => {
+  return tables.value.filter((table) => table.id === currentTab.value);
+});
 
 const loading = ElLoading.service({
   lock: true,
@@ -19,19 +27,65 @@ const loading = ElLoading.service({
   customClass: "mainLoader",
 });
 
+const removeRowInTable = ({ tableId, rowId }) => {
+  const currentTable = tables.value.find((table) => table.id === tableId);
+  currentTable.records = currentTable.records.filter((el) => el.id != rowId);
+};
+
+const addRowInTable = ({ tableId, row }) => {
+  const currentTable = tables.value.find((table) => table.id === tableId);
+  const newRow = {
+    id: row.id,
+    fieldsList: {},
+  };
+  for (let key in row) {
+    const labelEl = currentTable.rowTemplate.find((el) => el.name == key);
+    if (key != "id") {
+      newRow.fieldsList[key] = {
+        value: row[key],
+        name: key,
+        label: labelEl.label,
+      };
+    }
+  }
+  if (currentTable.records) {
+    currentTable.records = [...currentTable.records, newRow];
+  } else {
+    currentTable.records = [newRow];
+  }
+};
+
+const updateTableRow = ({ tableId, rowId, newData }) => {
+  const currentTable = tables.value.find((table) => table.id === tableId);
+  let currentRow = currentTable.records.find((el) => el.id == rowId);
+  if (currentRow) {
+    for (let key in newData) {
+      if (currentRow.fieldsList[key]) {
+        currentRow.fieldsList[key].value = newData[key];
+      }
+    }
+  }
+
+  currentTable.records = [...currentTable.records];
+};
+
 onMounted(() => {
-  setTimeout(() => {
+  store.loadData().then(() => {
+    isAuth.value = store.isAuth;
+    isAdmin.value = store.isAdmin;
     appLoaded.value = true;
     loading.close();
-  }, 1400);
+  });
 });
 </script>
 
 <template>
   <transition name="fade" mode="out-in">
     <div class="cont" v-if="appLoaded">
-      <el-button type="warning" class="reg-btn" v-if="!isAuth">
-        <a href="https://www.google.ru" style="color: #ffff">Регистрация</a>
+      <el-button type="warning" class="reg-btn" v-if="!isAuth && !isAdmin">
+        <a href="/wp-login.php?action=register" style="color: #ffff"
+          >Регистрация</a
+        >
       </el-button>
       <div class="app-wrapper">
         <div class="sidebar-menu">
@@ -45,37 +99,26 @@ onMounted(() => {
             >
             <el-button
               class="sidebar-btn"
-              @click="currentTab = 'table-1'"
-              :type="currentTab == 'table-1' ? 'success' : 'primary'"
+              @click="currentTab = table.id"
+              :type="currentTab == table.id ? 'success' : 'primary'"
               :icon="Grid"
-              >Таблица 1</el-button
-            >
-            <el-button
-              class="sidebar-btn"
-              @click="currentTab = 'table-2'"
-              :type="currentTab == 'table-2' ? 'success' : 'primary'"
-              :icon="Grid"
-              >Таблица 2</el-button
-            >
-            <el-button
-              class="sidebar-btn"
-              @click="currentTab = 'table-3'"
-              :type="currentTab == 'table-3' ? 'success' : 'primary'"
-              :icon="Grid"
-              >Таблица 3</el-button
-            >
-            <el-button
-              class="sidebar-btn"
-              @click="currentTab = 'table-4'"
-              :type="currentTab == 'table-4' ? 'success' : 'primary'"
-              :icon="Grid"
-              >Таблица 4</el-button
+              v-for="table in tables"
+              >{{ table.tableName }}</el-button
             >
           </el-card>
         </div>
         <div class="content-zone">
-          <AppTable v-if="currentTab == 'table-1'" />
           <EventCalendar v-if="currentTab == 'calendar'" />
+          <AppTable
+            v-for="table in currentTable"
+            :tableData="table.records"
+            :tableHead="table.rowTemplate"
+            :tableId="table.id"
+            :key="table.id"
+            @onDeleteItem="removeRowInTable"
+            @onAddedItem="addRowInTable"
+            @onUpdateItem="updateTableRow"
+          />
         </div>
       </div>
     </div>
@@ -83,6 +126,9 @@ onMounted(() => {
 </template>
 
 <style lang="scss">
+.table-item {
+  height: 100%;
+}
 .mainLoader {
   .el-loading-spinner .path {
     stroke: #fff !important;
@@ -99,8 +145,12 @@ onMounted(() => {
 }
 
 .sidebar-btn {
+  height: fit-content !important;
+  white-space: initial !important;
   width: 100%;
   margin: 10px 0px !important;
+  justify-content: space-between !important;
+  text-align: right !important;
 }
 .sidebar-menu {
   width: 20%;

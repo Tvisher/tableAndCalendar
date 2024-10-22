@@ -13,6 +13,7 @@
     "element-plus": "^2.8.5",
     "normalize.css": "^8.0.1",
     "pinia": "^2.2.4",
+    "qs": "^6.13.0",
     "vue3-easy-data-table": "^1.5.47"
   },
   "devDependencies": {

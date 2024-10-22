@@ -27,10 +27,7 @@
       <div class="edited-item" v-for="field in headers" :class="field.value">
         <div class="edited-item__name">{{ field.text }} :</div>
         <div class="edited-item__filed">
-          <el-input
-            v-model.trim="editedItem[field.value]"
-            style="width: 100%"
-          />
+          <el-input v-model="editedItem[field.value]" style="width: 100%" />
         </div>
       </div>
     </div>
@@ -58,7 +55,7 @@
           }"
         >
           <el-input
-            v-model.trim="tableRowTemplate[field.value]"
+            v-model="tableRowTemplate[field.value]"
             style="width: 100%"
           />
         </div>
@@ -88,61 +85,47 @@
 import { Delete, Edit, Plus } from "@element-plus/icons-vue";
 import { ref, watch } from "vue";
 
+import { createData, deleteData, updateData } from "@/services/api";
+
+const props = defineProps(["tableData", "tableId", "tableHead"]);
+const emit = defineEmits(["onDeleteItem", "onAddedItem", "onUpdateItem"]);
+
 import { useAppData } from "@/store/AppData.js";
 const store = useAppData();
 const isAdmin = store.isAdmin;
 
-const headers = ref([
-  { text: "PLAYER", value: "player", sortable: true },
-  { text: "TEAM", value: "team", sortable: true },
-  { text: "NUMBER", value: "number", sortable: true },
-  { text: "POSITION", value: "position", sortable: true },
-  { text: "LAST ATTENDED", value: "lastAttended", sortable: true },
-  { text: "COUNTRY", value: "country", sortable: true },
-]);
+const tableHead = props.tableHead.map((row) => {
+  return {
+    text: row.label,
+    value: row.name,
+    sortable: true,
+  };
+});
+
+const createTableRows = () => {
+  let rows;
+  if (!props.tableData) {
+    rows = [];
+  } else {
+    rows = props.tableData.map((row) => {
+      const rowData = {};
+      rowData.id = row.id;
+      Object.values(row.fieldsList).forEach((item) => {
+        rowData[item.name] = item.value;
+      });
+      return rowData;
+    });
+  }
+
+  return rows;
+};
+
+const headers = ref(tableHead);
+const items = ref(createTableRows());
 
 if (isAdmin) {
   headers.value.push({ text: "Управление", value: "operation" });
 }
-
-const items = ref([
-  {
-    player: "Stephen Curry",
-    team: "GSW",
-    number: 30,
-    position: "G",
-    lastAttended: "Davidson",
-    country: "USA",
-    id: 0,
-  },
-  {
-    player: "Lebron James",
-    team: "LAL",
-    number: 6,
-    position: "F",
-    lastAttended: "St. Vincent-St. Mary HS (OH)",
-    country: "USA",
-    id: 1,
-  },
-  {
-    player: "Kevin Durant",
-    team: "BKN",
-    number: 7,
-    position: "F",
-    lastAttended: "Texas-Austin",
-    country: "USA",
-    id: 2,
-  },
-  {
-    player: "Giannis Antetokounmpo",
-    team: "MIL",
-    number: 34,
-    position: "F",
-    lastAttended: "Filathlitikos",
-    country: "Greece",
-    id: 3,
-  },
-]);
 
 const editedItem = ref(null);
 const deletedItem = ref(null);
@@ -165,14 +148,25 @@ const setDeleteItem = (el) => {
 };
 
 const deleteItem = () => {
-  items.value = items.value.filter((item) => item.id != deletedItem.value.id);
-  showRemoveItemModal.value = false;
+  document.body.style.pointerEvents = "none";
+
+  deleteData("delete.php", {
+    id: deletedItem.value.id,
+  })
+    .then(() => {
+      emit("onDeleteItem", {
+        tableId: props.tableId,
+        rowId: deletedItem.value.id,
+      });
+      showRemoveItemModal.value = false;
+    })
+    .finally(() => {
+      document.body.style.pointerEvents = "inherit";
+    });
 };
 
 const editItem = (el) => {
   const currentItem = items.value.find((item) => item.id == el.id);
-  console.log(el);
-
   editedItem.value = { ...currentItem };
   isEditing.value = true;
 };
@@ -182,8 +176,24 @@ const submitEdit = () => {
     (item) => item.id == editedItem.value.id
   );
   if (currentItemIndex !== -1) {
-    items.value[currentItemIndex] = { ...editedItem.value };
-    isEditing.value = false;
+    editedItem.value = trimObjectValues(editedItem.value);
+    updateData("update.php", {
+      table: props.tableId,
+      ...editedItem.value,
+    }).then((data) => {
+      emit("onUpdateItem", {
+        tableId: props.tableId,
+        rowId: editedItem.value.id,
+        newData: { ...editedItem.value },
+      });
+      isEditing.value = false;
+    });
+    // emit("onUpdateItem", {
+    //   tableId: props.tableId,
+    //   rowId: editedItem.value.id,
+    //   newData: { ...editedItem.value },
+    // });
+    // isEditing.value = false;
   }
 };
 
@@ -196,22 +206,60 @@ function areAllFieldsFilled(obj) {
   return true;
 }
 
+function trimObjectValues(obj) {
+  return Object.fromEntries(
+    Object.entries(obj).map(([key, value]) => [
+      key,
+      typeof value === "string" ? value.trim() : value,
+    ])
+  );
+}
+
 const submitAddedRow = () => {
   if (!areAllFieldsFilled(tableRowTemplate.value)) {
     addedRowHasError.value = true;
     return;
   }
   addedRowHasError.value = false;
-  items.value.push(tableRowTemplate.value);
-  showAddRowModal.value = false;
-  setTimeout(() => {
-    tableRowTemplate.value = { ...tableRowTemplateObject };
-  }, 200);
+  tableRowTemplate.value = trimObjectValues(tableRowTemplate.value);
+  document.body.style.pointerEvents = "none";
+
+  createData("creat.php", {
+    table: props.tableId,
+    ...tableRowTemplate.value,
+  })
+    .then((newRowId) => {
+      const newRow = { ...tableRowTemplate.value };
+      newRow.id = newRowId;
+      emit("onAddedItem", { tableId: props.tableId, row: newRow });
+      showAddRowModal.value = false;
+      setTimeout(() => {
+        tableRowTemplate.value = { ...tableRowTemplateObject };
+      }, 200);
+    })
+    .finally(() => {
+      document.body.style.pointerEvents = "inherit";
+    });
+
+  // const newRow = { ...tableRowTemplate.value };
+  // newRow.id = 123123123124124;
+  // emit("onAddedItem", { tableId: props.tableId, row: newRow });
+  // showAddRowModal.value = false;
+  // setTimeout(() => {
+  //   tableRowTemplate.value = { ...tableRowTemplateObject };
+  // }, 200);
 };
 
 watch(showAddRowModal, () => {
   addedRowHasError.value = false;
 });
+
+watch(
+  () => props.tableData,
+  (newVal, oldVal) => {
+    items.value = createTableRows();
+  }
+);
 </script>
 
 <style lang="scss">
