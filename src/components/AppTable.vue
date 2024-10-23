@@ -124,7 +124,11 @@ const headers = ref(tableHead);
 const items = ref(createTableRows());
 
 if (isAdmin) {
-  headers.value.push({ text: "Управление", value: "operation" });
+  headers.value.push({
+    text: "Управление",
+    value: "operation",
+    width: 100,
+  });
 }
 
 const editedItem = ref(null);

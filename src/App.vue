@@ -153,7 +153,7 @@ onMounted(() => {
   text-align: right !important;
 }
 .sidebar-menu {
-  width: 20%;
+  width: 30%;
 }
 .cont {
   height: 100%;
@@ -168,7 +168,7 @@ onMounted(() => {
 }
 
 .content-zone {
-  width: 80%;
+  width: 100%;
   display: flex;
   flex-direction: column;
 }

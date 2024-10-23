@@ -98,7 +98,9 @@ const showEvent = (eventItem) => {
 // Функция для поиска всех событий по дате
 const getEventsByDate = (date) => {
   const formattedDate = date.toISOString().split("T")[0]; // Преобразуем дату в строку формата 'YYYY-MM-DD'
-  return events.value.filter((event) => event.date === formattedDate); // Ищем все события с совпадающей датой
+  return events.value
+    ? events.value.filter((event) => event.date === formattedDate)
+    : []; // Ищем все события с совпадающей датой
 };
 </script>
 
